@@ -1,0 +1,25 @@
+pandas
+numpy
+scikit-learn
+
+sentence-transformers
+
+faiss-cpu
+
+langchain
+langchain-community
+
+google-generativeai
+
+python-dotenv
+
+tqdm
+
+fastapi
+uvicorn
+
+pydantic
+
+matplotlib
+
+jupytergit reset --soft HEAD~1

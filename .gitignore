@@ -1,0 +1,26 @@
+.venv/
+
+# Raw dataset
+data/raw/
+
+# Processed data
+data/processed/
+
+__pycache__/
+
+.env
+
+.ipynb_checkpoints/
+
+*.pyc
+
+data/processed/
+
+models/
+
+*.faiss
+
+*.pkl
+
+.vscode/
+*.log
