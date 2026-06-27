@@ -6,7 +6,7 @@ a structured format used by all
 AI intelligence layers.
 """
 
-from feature_engineering import (
+from preprocessing.feature_engineering import (
     calculate_notice_score,
     calculate_availability_score,
     get_experience_bucket,
