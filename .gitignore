@@ -24,3 +24,5 @@ models/
 
 .vscode/
 *.log
+
+logs/
