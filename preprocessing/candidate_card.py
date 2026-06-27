@@ -64,9 +64,9 @@ def build_candidate_card(candidate):
 
             "summary": profile["summary"],
 
-            "skills": build_skills_text(candidate["skills"]),
+            "skills_text": build_skills_text(candidate["skills"]),
 
-            "career_history": build_career_text(candidate["career_history"])
+            "career_text": build_career_text(candidate["career_history"])
 
         },
 
