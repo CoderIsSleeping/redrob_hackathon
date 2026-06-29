@@ -1,3 +1,9 @@
 CARD_VERSION = "1.0"
 
 EMBEDDING_MODEL = "bge-small-en-v1.5"
+
+JD_VERSION ="1.0"
+
+CD_VERSION="1.0"
+
+RANKING_VERSION="1.0"
