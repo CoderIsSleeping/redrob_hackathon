@@ -78,6 +78,15 @@ for capability in result["matched_capabilities"]:
 print()
 
 print("=" * 70)
+print("PARTIAL MATCHES")
+print("=" * 70)
+
+for capability in result["partial_matches"]:
+    print("◐", capability)
+
+print()
+
+print("=" * 70)
 print("MISSING CAPABILITIES")
 print("=" * 70)
 
@@ -93,9 +102,7 @@ print("=" * 70)
 for capability, info in result["capability_breakdown"].items():
 
     print(capability)
-
     print(info)
-
     print()
 
 print("=" * 70)

@@ -1,5 +1,5 @@
 """
-Ranking Intelligence Engine V2
+Ranking Intelligence Engine V3
 
 Produces an explainable normalized score.
 """
@@ -36,6 +36,7 @@ class RankingAgent:
         maximum = 0
 
         matched = []
+        partial = []
         missing = []
 
         capability_breakdown = {}
@@ -45,53 +46,145 @@ class RankingAgent:
             for capability in report.capabilities
         }
 
-        # -------------------------------
-        # Required Capabilities
-        # -------------------------------
+        # ======================================================
+        # REQUIRED CAPABILITIES
+        # ======================================================
 
-        for required in rubric.required_capabilities:
+        for capability in rubric.required_capabilities:
 
-            maximum += required.importance
+            name = capability.name
+            importance = capability.importance
 
-            if required.name in candidate_capabilities:
+            maximum += importance
 
-                candidate = candidate_capabilities[required.name]
+            if name in candidate_capabilities:
 
-                multiplier = LEVEL_SCORE.get(candidate.level, 0)
+                candidate = candidate_capabilities[name]
 
-                score = required.importance * multiplier
+                multiplier = LEVEL_SCORE.get(
+                    candidate.level,
+                    0
+                )
+
+                score = importance * multiplier
 
                 obtained += score
 
-                matched.append(required.name)
+                if multiplier >= 0.80:
+                    matched.append(name)
 
-                capability_breakdown[required.name] = {
+                elif multiplier > 0:
+                    partial.append(name)
+
+                else:
+                    missing.append(name)
+
+                capability_breakdown[name] = {
+
+                    "type": "Required",
+
                     "score": round(score, 2),
-                    "importance": required.importance,
-                    "level": candidate.level
+
+                    "importance": importance,
+
+                    "level": candidate.level,
+
+                    "percentage": round(
+                        multiplier * 100,
+                        1
+                    )
                 }
 
             else:
 
-                missing.append(required.name)
+                missing.append(name)
 
-                capability_breakdown[required.name] = {
+                capability_breakdown[name] = {
+
+                    "type": "Required",
+
                     "score": 0,
-                    "importance": required.importance,
-                    "level": "Missing"
+
+                    "importance": importance,
+
+                    "level": "Missing",
+
+                    "percentage": 0
                 }
 
-        # -------------------------------
-        # Bonuses
-        # -------------------------------
+        # ======================================================
+        # PREFERRED CAPABILITIES
+        # (Worth 50% of Required)
+        # ======================================================
 
-        growth_bonus = GROWTH_SCORE[
-            report.growth_potential.level
-        ]
+        for capability in rubric.preferred_capabilities:
 
-        consistency_bonus = CONSISTENCY_SCORE[
-            report.consistency_analysis.status
-        ]
+            name = capability.name
+            importance = capability.importance
+
+            maximum += importance * 0.5
+
+            if name in candidate_capabilities:
+
+                candidate = candidate_capabilities[name]
+
+                multiplier = LEVEL_SCORE.get(
+                    candidate.level,
+                    0
+                )
+
+                score = (
+                    importance
+                    * 0.5
+                    * multiplier
+                )
+
+                obtained += score
+
+                capability_breakdown[name] = {
+
+                    "type": "Preferred",
+
+                    "score": round(score, 2),
+
+                    "importance": importance,
+
+                    "level": candidate.level,
+
+                    "percentage": round(
+                        multiplier * 100,
+                        1
+                    )
+                }
+
+            else:
+
+                capability_breakdown[name] = {
+
+                    "type": "Preferred",
+
+                    "score": 0,
+
+                    "importance": importance,
+
+                    "level": "Missing",
+
+                    "percentage": 0
+                }
+
+        # ======================================================
+        # BONUSES
+        # ======================================================
+
+        growth_bonus = GROWTH_SCORE.get(
+            report.growth_potential.level,
+            0
+        )
+
+        consistency_bonus = CONSISTENCY_SCORE.get(
+            report.consistency_analysis.status,
+            0
+        )
 
         availability_bonus = (
             behavior["availability_score"] * 5
@@ -105,27 +198,28 @@ class RankingAgent:
 
         maximum += 15
 
-        overall = (obtained / maximum) * 100
+        overall = round(
+            (obtained / maximum) * 100,
+            2
+        )
 
-        overall = round(overall, 2)
+        # ======================================================
+        # DECISION
+        # ======================================================
 
-        # -------------------------------
-        # Decision
-        # -------------------------------
-
-        if overall >= 95:
+        if overall >= 90:
 
             decision = "Excellent Match"
 
-        elif overall >= 90:
+        elif overall >= 80:
 
             decision = "Strong Match"
 
-        elif overall >= 75:
+        elif overall >= 70:
 
             decision = "Good Match"
 
-        elif overall >= 60:
+        elif overall >= 55:
 
             decision = "Potential Match"
 
@@ -139,11 +233,19 @@ class RankingAgent:
 
             "decision": decision,
 
-            "obtained_score": round(obtained, 2),
+            "obtained_score": round(
+                obtained,
+                2
+            ),
 
-            "maximum_score": maximum,
+            "maximum_score": round(
+                maximum,
+                2
+            ),
 
             "matched_capabilities": matched,
+
+            "partial_matches": partial,
 
             "missing_capabilities": missing,
 
