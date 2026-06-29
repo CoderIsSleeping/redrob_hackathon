@@ -1,9 +1,7 @@
 """
-Ranking Intelligence Engine
+Ranking Intelligence Engine V2
 
-Combines recruiter requirements with
-candidate intelligence to produce
-an explainable score.
+Produces an explainable normalized score.
 """
 
 LEVEL_SCORE = {
@@ -32,43 +30,60 @@ class RankingAgent:
     def __init__(self):
         pass
 
-    def calculate_score(
-        self,
-        rubric,
-        report,
-        behavior
-    ):
+    def calculate_score(self, rubric, report, behavior):
 
-        capability_score = 0
+        obtained = 0
+        maximum = 0
 
-        breakdown = {}
+        matched = []
+        missing = []
+
+        capability_breakdown = {}
 
         candidate_capabilities = {
-            c.name: c
-            for c in report.capabilities
+            capability.name: capability
+            for capability in report.capabilities
         }
 
-        for capability in rubric.required_capabilities:
+        # -------------------------------
+        # Required Capabilities
+        # -------------------------------
 
-            name = capability.name
+        for required in rubric.required_capabilities:
 
-            importance = capability.importance
+            maximum += required.importance
 
-            if name in candidate_capabilities:
+            if required.name in candidate_capabilities:
 
-                level = candidate_capabilities[name].level
+                candidate = candidate_capabilities[required.name]
 
-                multiplier = LEVEL_SCORE.get(level, 0)
+                multiplier = LEVEL_SCORE.get(candidate.level, 0)
 
-                score = importance * multiplier
+                score = required.importance * multiplier
+
+                obtained += score
+
+                matched.append(required.name)
+
+                capability_breakdown[required.name] = {
+                    "score": round(score, 2),
+                    "importance": required.importance,
+                    "level": candidate.level
+                }
 
             else:
 
-                score = 0
+                missing.append(required.name)
 
-            breakdown[name] = round(score, 2)
+                capability_breakdown[required.name] = {
+                    "score": 0,
+                    "importance": required.importance,
+                    "level": "Missing"
+                }
 
-            capability_score += score
+        # -------------------------------
+        # Bonuses
+        # -------------------------------
 
         growth_bonus = GROWTH_SCORE[
             report.growth_potential.level
@@ -82,42 +97,63 @@ class RankingAgent:
             behavior["availability_score"] * 5
         )
 
-        overall = (
-            capability_score
-            + growth_bonus
+        obtained += (
+            growth_bonus
             + consistency_bonus
             + availability_bonus
         )
 
-        if overall >= 90:
+        maximum += 15
+
+        overall = (obtained / maximum) * 100
+
+        overall = round(overall, 2)
+
+        # -------------------------------
+        # Decision
+        # -------------------------------
+
+        if overall >= 95:
+
             decision = "Excellent Match"
 
-        elif overall >= 80:
+        elif overall >= 90:
+
             decision = "Strong Match"
 
-        elif overall >= 65:
+        elif overall >= 75:
+
             decision = "Good Match"
 
-        elif overall >= 50:
+        elif overall >= 60:
+
             decision = "Potential Match"
 
         else:
+
             decision = "Weak Match"
 
         return {
 
-            "overall_score": round(overall, 2),
+            "overall_score": overall,
 
             "decision": decision,
 
-            "capability_breakdown": breakdown,
+            "obtained_score": round(obtained, 2),
 
-            "growth_bonus": growth_bonus,
+            "maximum_score": maximum,
 
-            "consistency_bonus": consistency_bonus,
+            "matched_capabilities": matched,
 
-            "availability_bonus": round(
-                availability_bonus,
-                2
-            )
+            "missing_capabilities": missing,
+
+            "capability_breakdown": capability_breakdown,
+
+            "strengths": report.strengths,
+
+            "risks": report.risks,
+
+            "growth": report.growth_potential,
+
+            "consistency": report.consistency_analysis
         }
