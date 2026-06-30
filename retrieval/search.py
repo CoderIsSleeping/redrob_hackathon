@@ -1,8 +1,9 @@
 """
 Semantic Search Engine
 
-Loads the FAISS index and retrieves
-the Top-K most similar candidates.
+Searches the FAISS index and returns
+the complete Candidate Cards of the
+Top-K semantic matches.
 """
 
 import json
@@ -44,16 +45,14 @@ class SemanticSearch:
 
         self.embedder = EmbeddingEngine()
 
-        print()
-
-        print(f"Loaded {self.index.ntotal} vectors.")
+        print(f"\nLoaded {self.index.ntotal} vectors.")
 
     def search(self, query: str, top_k: int = 100):
 
-        query_vector = self.embedder.embed(query)
+        query_embedding = self.embedder.embed(query)
 
         distances, indices = self.index.search(
-            query_vector.reshape(1, -1),
+            query_embedding.reshape(1, -1),
             top_k
         )
 
@@ -64,18 +63,17 @@ class SemanticSearch:
             start=1
         ):
 
-            candidate = self.metadata[idx]
+            info = self.metadata[idx]
 
-            card = self.cards[candidate["candidate_id"]]
+            candidate = self.cards[
+                info["candidate_id"]
+            ]
 
             results.append(
                 {
                     "rank": rank,
-                    "candidate_id": candidate["candidate_id"],
-                    "headline": card["semantic"]["headline"],
-                    "experience": candidate["experience_bucket"],
-                    "industry": card["metadata"]["industry"],
-                    "similarity": round(float(similarity), 4)
+                    "similarity": round(float(similarity), 4),
+                    "candidate": candidate
                 }
             )
 
