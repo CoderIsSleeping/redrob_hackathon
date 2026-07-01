@@ -13,7 +13,7 @@ Ranking Agent
  ↓
 Final Ranking
 """
-
+import time
 from agents.jd_agents import JDAgent
 from agents.candidate_agent import CandidateAgent
 from agents.ranking_agent import RankingAgent
@@ -39,6 +39,8 @@ class RecruitmentPipeline:
         print("\nPipeline Ready.\n")
 
     def run(self, job_description, top_k=100):
+
+        start=time.perf_counter()
 
         print("=" * 70)
         print("STEP 1 : JD AGENT")
@@ -120,12 +122,31 @@ class RecruitmentPipeline:
                 f"({score['overall_score']}%)"
             )
 
+        search_end=time.perf_counter()
+
+        print(
+            f"semantic search : "
+            f"{search_end-start:.2f} sec" 
+        )
+
         final_results.sort(
 
             key=lambda x: x["ranking"]["overall_score"],
 
             reverse=True
 
+        )
+
+        end = time.perf_counter()
+
+        print()
+
+        print("=" * 70)
+        print("PERFORMANCE")
+        print("=" * 70)
+
+        print(
+            f"Total Time : {end-start:.2f} sec"
         )
 
         return rubric, final_results
