@@ -1,9 +1,8 @@
 """
 Semantic Search Engine
 
-Searches the FAISS index and returns
-the complete Candidate Cards of the
-Top-K semantic matches.
+Returns Candidate Card + Precomputed Evidence
+for the Top-K semantic matches.
 """
 
 import json
@@ -16,6 +15,7 @@ from retrieval.embedder import EmbeddingEngine
 INDEX_PATH = Path("data/processed/faiss.index")
 IDS_PATH = Path("data/processed/candidate_ids.json")
 CARDS_PATH = Path("data/processed/candidate_cards.jsonl")
+EVIDENCE_PATH = Path("data/processed/candidate_evidence.jsonl")
 
 
 class SemanticSearch:
@@ -43,9 +43,23 @@ class SemanticSearch:
 
                 self.cards[card["candidate_id"]] = card
 
+        print("Loading evidence store...")
+
+        self.evidence = {}
+
+        with open(EVIDENCE_PATH, "r", encoding="utf-8") as f:
+
+            for line in f:
+
+                item = json.loads(line)
+
+                self.evidence[item["candidate_id"]] = item["evidence"]
+
         self.embedder = EmbeddingEngine()
 
-        print(f"\nLoaded {self.index.ntotal} vectors.")
+        print()
+
+        print(f"Loaded {self.index.ntotal} vectors.")
 
     def search(self, query: str, top_k: int = 100):
 
@@ -65,15 +79,14 @@ class SemanticSearch:
 
             info = self.metadata[idx]
 
-            candidate = self.cards[
-                info["candidate_id"]
-            ]
+            candidate_id = info["candidate_id"]
 
             results.append(
                 {
                     "rank": rank,
                     "similarity": round(float(similarity), 4),
-                    "candidate": candidate
+                    "candidate": self.cards[candidate_id],
+                    "evidence": self.evidence[candidate_id]
                 }
             )
 

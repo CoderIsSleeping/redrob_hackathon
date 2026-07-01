@@ -35,15 +35,24 @@ print("=" * 90)
 print("TOP RETRIEVED CANDIDATES")
 print("=" * 90)
 
-for candidate in candidates:
+for result in candidates:
 
-    card = candidate["candidate"]
+    card = result["candidate"]
 
     print()
 
-    print(f"Rank        : {candidate['rank']}")
-    print(f"Similarity  : {candidate['similarity']}")
+    print(f"Rank        : {result['rank']}")
+    print(f"Similarity  : {result['similarity']}")
     print(f"Candidate   : {card['candidate_id']}")
     print(f"Headline    : {card['semantic']['headline']}")
     print(f"Experience  : {card['metadata']['experience_bucket']}")
     print(f"Industry    : {card['metadata']['industry']}")
+
+    capabilities = []
+
+    for name, value in result["evidence"].items():
+
+        if value["score"] >= 0.20:
+            capabilities.append(name)
+
+    print(f"Capabilities: {', '.join(capabilities)}")
