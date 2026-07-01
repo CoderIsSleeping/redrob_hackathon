@@ -181,7 +181,7 @@ Additional Rules
 - Generate a search query using only important technical keywords.
 - Ignore company names.
 - Ignore salary information.
-- Ignore location.
+- Ignoangere location.
 - Ignore visa or sponsorship requirements.
 - Ignore generic HR statements.
 - Return ONLY valid JSON.
